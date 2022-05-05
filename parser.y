@@ -12,19 +12,141 @@
 %error-verbose
 
 /* WRITEME: List all your tokens here */
+%token T_IDENTIFIER T_LITERAL
+%token T_ARROW T_SEMICOLON T_DOT T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_COMMA T_NOT T_MULT T_DIV T_PLUS T_MINUS T_GREATER T_GREATEREQUAL T_EQUAL
+%token T_AND T_OR T_PRINT T_RETURN T_IF T_ELSE T_WHILE T_NEW T_INTEGER T_BOOLEAN T_NONE T_EQUALS T_TRUE T_FALSE T_EXTENDS T_DO
+%token T_UNARY
 
 /* WRITEME: Specify precedence here */
+%right T_NOT T_UNARY
+%left T_MULT T_DIV
+%left T_PLUS T_MINUS
+%left T_GREATER T_GREATEREQUAL T_EQUALS
+%left T_AND
+%left T_OR
 
 %%
 
 /* WRITEME: This rule is a placeholder, since Bison requires
             at least one rule to run successfully. Replace
             this with your appropriate start rules. */
-Start :
+Start : ClassName
       ;
 
 /* WRITME: Write your Bison grammar specification here */
+ClassName : ClassName T_IDENTIFIER T_EXTENDS T_IDENTIFIER T_OPENBRACKET Members Methods T_CLOSEBRACKET
+          | ClassName T_IDENTIFIER T_OPENBRACKET Members Methods T_CLOSEBRACKET
+          |
+          %empty
+          ;
 
+/*
+ClassNamePrime : ClassName ClassNamePrime 
+               | 
+               ;
+*/
+
+Type : T_INTEGER
+     | T_BOOLEAN
+     | T_IDENTIFIER
+     ;
+
+Members : Members Type T_IDENTIFIER T_SEMICOLON
+        | 
+        %empty
+        ;
+
+/*
+MembersPrime : Members MembersPrime
+             | 
+             ;
+*/
+
+Methods : Methods T_IDENTIFIER T_OPENPAREN Parameters T_CLOSEPAREN T_ARROW Type T_OPENBRACKET Body T_CLOSEBRACKET
+        | 
+        %empty
+        ;
+
+/*
+MethodsPrime : Methods MethodsPrime
+             |
+             ;
+*/
+
+Parameters : Type T_IDENTIFIER ParametersPrime
+           | 
+           %empty
+           ;
+
+ParametersPrime : ParametersPrime T_COMMA Type T_IDENTIFIER
+                |
+                %empty
+                ;
+
+Body : DeclarationsList StatementsList
+     | DeclarationsList StatementsList T_RETURN Expression
+     ;
+
+DeclarationsList : DeclarationsList Declarations 
+                 | 
+                 %empty
+                 ;
+
+Declarations : Type T_IDENTIFIER DeclarationsPrime
+             ;
+
+DeclarationsPrime : T_COMMA Declarations
+                  | T_SEMICOLON
+                  ;
+
+StatementsList : StatementsList Statements
+               | 
+               %empty
+               ;
+
+Statements : T_IDENTIFIER T_EQUAL Expression T_SEMICOLON
+           | T_IDENTIFIER T_DOT T_IDENTIFIER T_EQUAL Expression T_SEMICOLON
+           | MethodCall T_SEMICOLON
+           | T_IF Expression T_OPENBRACKET Statements T_CLOSEBRACKET
+           | T_IF Expression T_OPENBRACKET Statements T_CLOSEBRACKET T_ELSE T_OPENBRACKET Statements T_CLOSEBRACKET
+           | T_WHILE Expression T_OPENBRACKET Statements T_CLOSEBRACKET
+           | T_DO T_OPENBRACKET Statements T_CLOSEBRACKET T_WHILE T_OPENPAREN Expression T_CLOSEPAREN T_SEMICOLON
+           | T_PRINT Expression T_SEMICOLON
+
+Expression : Expression T_PLUS Expression
+           | Expression T_MINUS Expression
+           | Expression T_MULT Expression
+           | Expression T_DIV Expression
+           | Expression T_GREATER Expression
+           | Expression T_GREATEREQUAL Expression
+           | Expression T_EQUALS Expression
+           | Expression T_AND Expression
+           | Expression T_OR Expression
+           | Expression T_NOT Expression
+           | T_MINUS Expression             %prec T_UNARY
+           | T_IDENTIFIER
+           | T_IDENTIFIER T_DOT T_IDENTIFIER
+           | MethodCall
+           | T_OPENPAREN Expression T_CLOSEPAREN
+           | T_LITERAL
+           | T_TRUE
+           | T_FALSE
+           | T_NEW T_IDENTIFIER
+           | T_NEW T_IDENTIFIER T_OPENPAREN Arguments T_CLOSEPAREN
+           ;
+
+MethodCall : T_IDENTIFIER T_OPENPAREN Arguments T_CLOSEPAREN
+           | T_IDENTIFIER T_DOT T_IDENTIFIER T_OPENPAREN Arguments T_CLOSEPAREN
+           ;
+
+Arguments  : ArgumentsPrime
+           | 
+           %empty
+           ;
+
+ArgumentsPrime : ArgumentsPrime T_COMMA Expression
+               | Expression
+               ;
 %%
 
 extern int yylineno;
