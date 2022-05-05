@@ -59,6 +59,7 @@
 [0-9]+\.?[0-9]+   { return T_LITERAL; }
 [0]               { return T_LITERAL; }
 [\t\n]            ;
+" "               ;
 .                 { yyerror("invalid character"); }
 %%
 

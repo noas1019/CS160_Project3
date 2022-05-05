@@ -84,7 +84,7 @@ ParametersPrime : ParametersPrime T_COMMA Type T_IDENTIFIER
                 ;
 
 Body : DeclarationsList StatementsList
-     | DeclarationsList StatementsList T_RETURN Expression
+     | DeclarationsList StatementsList T_RETURN Expression T_SEMICOLON
      ;
 
 DeclarationsList : DeclarationsList Declarations 
