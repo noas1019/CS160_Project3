@@ -20,8 +20,14 @@
             ftp://ftp.gnu.org/old-gnu/Manuals/flex-2.5.4/html_mono/flex.html#SEC11
             You will probably want to use exclusive conditions rather
             than inclusive conditions (use the %x instead of the %s). */
-
+%x COMMENT
 %%
+
+"/*"              BEGIN(COMMENT);
+<COMMENT>[^<<EOF>>]  
+<COMMENT><<EOF>>  { yyerror("dangling comment"); }
+<COMMENT>"*/"     BEGIN(INITIAL); 
+
   /* WRITEME: Write your Flex token rules here */
 "->"              { return T_ARROW; }
 ";"               { return T_SEMICOLON; }
@@ -57,7 +63,7 @@
 "do"              { return T_DO; }
 [a-zA-Z][a-zA-Z0-9]* { return T_IDENTIFIER; }
 [0-9]+\.?[0-9]+   { return T_LITERAL; }
-[0]               { return T_LITERAL; }
+[0-9]*            { return T_LITERAL; }
 [\t\n]            ;
 " "               ;
 .                 { yyerror("invalid character"); }

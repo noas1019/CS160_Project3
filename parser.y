@@ -34,44 +34,40 @@ Start : ClassName
       ;
 
 /* WRITME: Write your Bison grammar specification here */
-ClassName : ClassName T_IDENTIFIER T_EXTENDS T_IDENTIFIER T_OPENBRACKET Members Methods T_CLOSEBRACKET
-          | ClassName T_IDENTIFIER T_OPENBRACKET Members Methods T_CLOSEBRACKET
+ClassName : ClassName T_IDENTIFIER T_EXTENDS T_IDENTIFIER T_OPENBRACKET ClassBody T_CLOSEBRACKET
+          | ClassName T_IDENTIFIER T_OPENBRACKET ClassBody T_CLOSEBRACKET
+          | 
+          %empty
+          ;
+
+ClassBody : Members MembersPrime
+          | Methods MethodsPrime
+          | Members MembersPrime Methods MethodsPrime
           |
           %empty
           ;
 
-/*
-ClassNamePrime : ClassName ClassNamePrime 
-               | 
-               ;
-*/
-
 Type : T_INTEGER
      | T_BOOLEAN
      | T_IDENTIFIER
+     | T_NONE
      ;
 
-Members : Members Type T_IDENTIFIER T_SEMICOLON
-        | 
-        %empty
+Members : Type T_IDENTIFIER T_SEMICOLON
         ;
 
-/*
-MembersPrime : Members MembersPrime
-             | 
-             ;
-*/
-
-Methods : Methods T_IDENTIFIER T_OPENPAREN Parameters T_CLOSEPAREN T_ARROW Type T_OPENBRACKET Body T_CLOSEBRACKET
-        | 
-        %empty
-        ;
-
-/*
-MethodsPrime : Methods MethodsPrime
+MembersPrime : MembersPrime Type T_IDENTIFIER T_SEMICOLON
              |
+             %empty
              ;
-*/
+
+Methods : T_IDENTIFIER T_OPENPAREN Parameters T_CLOSEPAREN T_ARROW Type T_OPENBRACKET Body T_CLOSEBRACKET
+        ;
+
+MethodsPrime : MethodsPrime T_IDENTIFIER T_OPENPAREN Parameters T_CLOSEPAREN T_ARROW Type T_OPENBRACKET Body T_CLOSEBRACKET
+             |
+             %empty
+             ;
 
 Parameters : Type T_IDENTIFIER ParametersPrime
            | 
@@ -83,21 +79,28 @@ ParametersPrime : ParametersPrime T_COMMA Type T_IDENTIFIER
                 %empty
                 ;
 
-Body : DeclarationsList StatementsList
-     | DeclarationsList StatementsList T_RETURN Expression T_SEMICOLON
+Body : Return
+     | Declarations DeclarationsList Return
+     | Statements StatementsList Return
+     | Declarations DeclarationsList Statements StatementsList Return
      ;
 
-DeclarationsList : DeclarationsList Declarations 
-                 | 
-                 %empty
-                 ;
+Return : T_RETURN Expression T_SEMICOLON
+       |
+       %empty
+       ;
 
 Declarations : Type T_IDENTIFIER DeclarationsPrime
              ;
 
-DeclarationsPrime : T_COMMA Declarations
+DeclarationsPrime : T_COMMA T_IDENTIFIER DeclarationsPrime
                   | T_SEMICOLON
                   ;
+
+DeclarationsList : DeclarationsList Declarations
+                 |
+                 %empty
+                 ;
 
 StatementsList : StatementsList Statements
                | 
@@ -107,11 +110,19 @@ StatementsList : StatementsList Statements
 Statements : T_IDENTIFIER T_EQUAL Expression T_SEMICOLON
            | T_IDENTIFIER T_DOT T_IDENTIFIER T_EQUAL Expression T_SEMICOLON
            | MethodCall T_SEMICOLON
-           | T_IF Expression T_OPENBRACKET Statements T_CLOSEBRACKET
-           | T_IF Expression T_OPENBRACKET Statements T_CLOSEBRACKET T_ELSE T_OPENBRACKET Statements T_CLOSEBRACKET
-           | T_WHILE Expression T_OPENBRACKET Statements T_CLOSEBRACKET
-           | T_DO T_OPENBRACKET Statements T_CLOSEBRACKET T_WHILE T_OPENPAREN Expression T_CLOSEPAREN T_SEMICOLON
+           | T_IF Expression T_OPENBRACKET Blocks T_CLOSEBRACKET
+           | T_IF Expression T_OPENBRACKET Blocks T_CLOSEBRACKET T_ELSE T_OPENBRACKET Blocks T_CLOSEBRACKET
+           | T_WHILE Expression T_OPENBRACKET Blocks T_CLOSEBRACKET
+           | T_DO T_OPENBRACKET Blocks T_CLOSEBRACKET T_WHILE T_OPENPAREN Expression T_CLOSEPAREN T_SEMICOLON
            | T_PRINT Expression T_SEMICOLON
+
+Blocks : Statements BlocksPrime
+       ;
+
+BlocksPrime : BlocksPrime Statements
+            |
+            %empty
+            ;
 
 Expression : Expression T_PLUS Expression
            | Expression T_MINUS Expression
@@ -122,7 +133,7 @@ Expression : Expression T_PLUS Expression
            | Expression T_EQUALS Expression
            | Expression T_AND Expression
            | Expression T_OR Expression
-           | Expression T_NOT Expression
+           | T_NOT Expression
            | T_MINUS Expression             %prec T_UNARY
            | T_IDENTIFIER
            | T_IDENTIFIER T_DOT T_IDENTIFIER
